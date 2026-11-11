@@ -10,12 +10,46 @@ with MLB or any club.
 
 ## Status
 
-**Not yet run on real data.** The code is complete and tested on made-up data with a planted
-answer. The findings section below is empty until the first Statcast run.
+Run on Statcast data retrieved 11 November 2026: 4.24 million regular-season pitches from 2021
+to 2026. Every number below comes from that run and is in `results/`.
 
 ## Findings
 
-_To be written after the first real run, from `results/summary.md`._
+323 pitchers threw at least 500 pitches in both 2025 and 2026. Intervals are 95%, from
+resampling pitchers.
+
+1. **The rating is stable.** Agreement between two halves of a pitcher's 2025 games projects to
+   0.99 over a full season, against 0.30 for actual runs prevented per 100 pitches. From 2025
+   to 2026 the rating correlates with itself at 0.89.
+2. **On its own it predicts next season about as well as expected wOBA, and less well than
+   strikeout-minus-walk rate.** The 2025 rating against 2026 expected wOBA allowed: r = −0.40
+   (−0.49 to −0.30); 2025 expected wOBA itself: +0.43 (0.33 to 0.52). Against 2026
+   strikeout-minus-walk rate: rating +0.41 (0.31 to 0.50); the 2025 rate itself +0.55
+   (0.46 to 0.62).
+3. **Added to this season's results, it helps a little.** Out-of-sample error for 2026
+   strikeout-minus-walk rate fell from 0.0497 to 0.0481 (change −0.0015, interval −0.0030 to
+   −0.0001), and for expected wOBA from 0.0297 to 0.0288 (−0.0009, interval −0.0017 to
+   −0.0001). For runs prevented the interval includes zero (−0.033 to +0.004).
+4. **How much weight to put on this.** Both intervals only just exclude zero, three targets
+   were tested, and on the development pair (2024 to 2025) the same gains were smaller with
+   intervals that include zero. This is modest evidence that pitch shape adds information
+   beyond one season of results. It is not a strong result.
+
+Against the criteria written down in advance: the second (lower error with an interval that
+excludes zero for at least one target) is met; the first (a link at least as strong as the
+results-based measures) holds for expected wOBA and runs prevented but not for
+strikeout-minus-walk rate.
+
+The 2025 leaderboard looks like baseball: Trevor Megill, Ryan Helsley, Graham Ashcraft,
+Emmanuel Clase and Aroldis Chapman lead it, and the highest-rated single pitch is Devin
+Williams' changeup.
+
+**Known weakness.** On single pitches the model explains 0.35% of run-value variance in the
+seasons it trained on and 0.05% to 0.07% in later ones. Single pitches are mostly luck, so
+small numbers are expected, but the gap says the model is fitting some noise. Stronger
+regularisation is the first thing to try.
+
+![2025 rating against 2026 expected wOBA allowed](results/rating_vs_next_season.png)
 
 ## The idea in one paragraph
 
