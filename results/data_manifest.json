@@ -1,0 +1,39 @@
+{
+  "source": "Baseball Savant Statcast search, via pybaseball.statcast",
+  "retrieved_at_utc": "2026-11-11T14:26:11+00:00",
+  "regular_season_pitches": {
+    "2021": 712320,
+    "2022": 710210,
+    "2023": 720684,
+    "2024": 711899,
+    "2025": 712528,
+    "2026": 716792
+  },
+  "columns": [
+    "game_date",
+    "game_year",
+    "game_type",
+    "game_pk",
+    "at_bat_number",
+    "pitch_number",
+    "pitcher",
+    "batter",
+    "p_throws",
+    "stand",
+    "pitch_type",
+    "release_speed",
+    "pfx_x",
+    "pfx_z",
+    "release_spin_rate",
+    "spin_axis",
+    "release_extension",
+    "release_pos_x",
+    "release_pos_z",
+    "delta_run_exp",
+    "events",
+    "description",
+    "woba_value",
+    "woba_denom",
+    "estimated_woba_using_speedangle"
+  ]
+}

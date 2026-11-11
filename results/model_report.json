@@ -1,0 +1,83 @@
+{
+  "train_seasons": [
+    2021,
+    2022,
+    2023
+  ],
+  "tune_season": 2024,
+  "train_pitches": 2120086,
+  "tune_pitches": 703007,
+  "rounds": 116,
+  "features": [
+    "release_speed",
+    "hmov",
+    "vmov",
+    "release_spin_rate",
+    "spin_axis_adj",
+    "release_extension",
+    "release_x_adj",
+    "release_pos_z",
+    "velo_diff",
+    "hmov_diff",
+    "vmov_diff",
+    "same_hand"
+  ],
+  "pitch_level": {
+    "2021": {
+      "role": "train",
+      "pitches": 705420,
+      "rmse_model": 0.2263113902679221,
+      "rmse_constant": 0.22673594671538852,
+      "r2": 0.0037414355229345997
+    },
+    "2022": {
+      "role": "train",
+      "pitches": 704153,
+      "rmse_model": 0.21705656551856312,
+      "rmse_constant": 0.21743925990270654,
+      "r2": 0.003516914214334199
+    },
+    "2023": {
+      "role": "train",
+      "pitches": 710513,
+      "rmse_model": 0.2265103665481375,
+      "rmse_constant": 0.22690788963716998,
+      "r2": 0.003500758625468503
+    },
+    "2024": {
+      "role": "tune",
+      "pitches": 703007,
+      "rmse_model": 0.21927459041572156,
+      "rmse_constant": 0.21935330685854748,
+      "r2": 0.0007175849772642628
+    },
+    "2025": {
+      "role": "unseen",
+      "pitches": 704762,
+      "rmse_model": 0.22209855334809245,
+      "rmse_constant": 0.222165469870978,
+      "r2": 0.0006023118286867524
+    },
+    "2026": {
+      "role": "unseen",
+      "pitches": 709856,
+      "rmse_model": 0.22090506184476236,
+      "rmse_constant": 0.2209640893674814,
+      "r2": 0.000534201178950644
+    }
+  },
+  "importance_gain": {
+    "vmov": 446.20838145911694,
+    "release_speed": 418.94236029684544,
+    "hmov": 408.09610129892826,
+    "release_spin_rate": 370.47999803721905,
+    "vmov_diff": 336.7402447462082,
+    "hmov_diff": 330.0860525071621,
+    "velo_diff": 328.64724193513393,
+    "release_pos_z": 321.72019036114216,
+    "release_x_adj": 298.9384183883667,
+    "spin_axis_adj": 265.349376514554,
+    "release_extension": 160.53291508555412,
+    "same_hand": 71.1794620603323
+  }
+}
