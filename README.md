@@ -44,8 +44,8 @@ The 2025 leaderboard looks like baseball: Trevor Megill, Ryan Helsley, Graham As
 Emmanuel Clase and Aroldis Chapman lead it, and the highest-rated single pitch is Devin
 Williams' changeup.
 
-**Known weakness.** On single pitches the model explains 0.35% of run-value variance in the
-seasons it trained on and 0.05% to 0.07% in later ones. Single pitches are mostly luck, so
+**Known weakness.** On single pitches the model explains 0.36% of run-value variance in the
+seasons it trained on and 0.05% to 0.06% in the two it never saw. Single pitches are mostly luck, so
 small numbers are expected, but the gap says the model is fitting some noise. Stronger
 regularisation is the first thing to try.
 
@@ -59,6 +59,8 @@ those shapes were worth in runs. It then rates every 2025 pitch, and those ratin
 against what the same pitchers did in 2026, next to the obvious alternative of just using
 their 2025 results. The full design is in [RESEARCH_PLAN.md](RESEARCH_PLAN.md), written before
 any real data was run.
+
+**Interactive results:** https://takizawadaiki.github.io/pitch-quality-model/
 
 ## Run it
 
@@ -117,6 +119,7 @@ pitchq/evaluate.py   pitcher-level tests against next season
 pitchq/synthetic.py  made-up data with a planted answer, for tests only
 tests/               15 checks
 notebooks/           Colab walkthrough
+index.html           the results page, drawn from results/ at load time
 ```
 
 ## Limits

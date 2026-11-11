@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#10120f"/>
+<meta name="description" content="A pitch quality model built on 4.2 million Statcast pitches: rate pitches from how they leave the hand, then test the rating against the following season."/>
+<title>Pitch Quality Model · Daiki Takizawa</title>
+<link rel="canonical" href="https://takizawadaiki.github.io/pitch-quality-model/"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Daiki Takizawa"/>
+<meta property="og:title" content="Pitch Quality Model · Daiki Takizawa"/>
+<meta property="og:description" content="Rate pitches from how they leave the hand, then test the rating against the following season. 4.2 million Statcast pitches, 2021 to 2026."/>
+<meta property="og:url" content="https://takizawadaiki.github.io/pitch-quality-model/"/>
+<meta property="og:image" content="https://takizawadaiki.github.io/og-image.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  color-scheme:dark;
+  --bg:#10120f;--card:#151a13;--ink:#f0f0e7;--muted:#a5ab9e;--border:#30372d;--orange:#ff8050;
+  --blue:#3987e5;--heading:'Space Grotesk',sans-serif;
+}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{background:var(--bg);color:var(--ink);font:15px/1.65 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+.wrap{width:min(1240px,calc(100% - 64px));margin:0 auto}
+.progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;background:linear-gradient(90deg,#ff8050,#ffb08a);transform:scaleX(var(--p,0));transform-origin:0 50%;pointer-events:none}
+.skip{position:fixed;left:16px;top:-80px;z-index:70;background:var(--orange);color:#171b13;padding:10px 14px;border-radius:6px}
+.skip:focus{top:12px}
+:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:16px;height:92px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;font:600 18px var(--heading);letter-spacing:-.6px}
+.brand i{font-style:normal;background:#dbe4cd;color:#151a12;font-size:21px;padding:4px 9px;margin-right:13px;letter-spacing:-3px}
+.brand b{color:var(--orange)}
+.top nav{display:flex;gap:26px;font-size:12px;color:var(--muted)}
+.top nav a:hover{color:var(--orange)}
+.eyebrow,.k{font:500 10.5px/1.5 var(--heading);letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.eyebrow{display:flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--orange)}
+.hero{padding:56px 0 30px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:48px;align-items:end}
+h1{font:500 clamp(40px,5.6vw,82px)/.98 var(--heading);letter-spacing:-.055em;margin-top:18px}
+h1 em{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-style:italic;color:var(--orange);letter-spacing:-.04em}
+.lede{color:var(--muted);font-size:15.5px;line-height:1.8;max-width:54ch}
+.verdict{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;border:1px solid #5b4435;border-left:3px solid var(--orange);background:#1b1612;border-radius:0 12px 12px 0;padding:18px 22px;margin-top:8px}
+.verdict .k{color:var(--orange);white-space:nowrap}
+.verdict p{font-size:15px;line-height:1.6}
+.verdict p strong{font-weight:600}
+.verdict a{font:500 12.5px var(--heading);white-space:nowrap;border-bottom:1px solid var(--border);padding-bottom:3px}
+.verdict a:hover{color:var(--orange)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:26px 0 8px}
+.kpi{position:relative;display:flex;flex-direction:column;gap:6px;min-height:170px;padding:20px 18px 16px;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#151a13,#10120f);overflow:hidden;isolation:isolate;transition:border-color .3s,translate .3s}
+.kpi::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .35s;background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(255,128,80,.2),transparent 62%)}
+.kpi:hover{border-color:#6b4a3a;translate:0 -3px}.kpi:hover::before{opacity:1}
+.kpi .v{font:600 clamp(30px,3.2vw,44px)/1 var(--heading);letter-spacing:-.03em;margin-top:6px;font-variant-numeric:tabular-nums}
+.kpi .n{font-size:12.5px;line-height:1.5;color:var(--muted)}
+.kpi .src{margin-top:auto;border-top:1px solid var(--border);padding-top:9px;font:500 10.5px/1.4 var(--heading);letter-spacing:.03em;color:#8d9486}
+section{padding:54px 0 0}
+.sec-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 20px;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:22px}
+.sec-top .k b{color:var(--orange);font-weight:500;margin-right:14px}
+h2{font:400 clamp(26px,3.1vw,42px)/1.1 var(--heading);letter-spacing:-.035em;max-width:22ch}
+h2 em{font-family:Georgia,serif;font-style:italic;color:#a6b693}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:40px;margin-bottom:24px}
+.sec-head p{color:var(--muted);font-size:14px;line-height:1.75;max-width:52ch}
+.panel{border:1px solid var(--border);border-radius:16px;background:var(--card);padding:24px 24px 20px}
+.panel h3{font:600 18px/1.25 var(--heading);letter-spacing:-.02em}
+.panel .sub{color:var(--muted);font-size:13.5px;line-height:1.65;margin:6px 0 16px;max-width:66ch}
+.grid2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chips button{font:500 12.5px/1 var(--heading);color:var(--ink);background:transparent;border:1px solid var(--border);border-radius:999px;padding:10px 14px;cursor:pointer;transition:border-color .2s,background .2s}
+.chips button:hover{border-color:#6b4a3a}
+.chips button[aria-pressed="true"]{background:#e0e7d7;color:#1a2115;border-color:#e0e7d7}
+.chart-box{position:relative;height:400px}
+.src{font:500 10.5px/1.5 var(--heading);letter-spacing:.03em;color:#8d9486}
+.panel>.src{margin-top:14px;padding-top:10px;border-top:1px solid var(--border)}
+/* timeline */
+.timeline{display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:8px}
+.tl{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--card)}
+.tl .yrs{font:600 22px/1 var(--heading);letter-spacing:-.02em;margin:8px 0 6px;font-variant-numeric:tabular-nums}
+.tl p{font-size:12.5px;line-height:1.55;color:var(--muted)}
+.tl.judge{border-color:#6b4a3a;background:#1b1612}.tl.judge .k{color:var(--orange)}
+/* interval plots */
+.forest{display:grid;gap:2px}
+.frow{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:4px 14px;align-items:center;padding:9px 0;border-top:1px solid #232a20}
+.frow:first-child{border-top:0}
+.fname{font:500 12.5px/1.3 var(--heading)}
+.frow.me .fname{color:var(--orange)}
+.ftrack{position:relative;height:24px}
+.ftrack .zero{position:absolute;top:0;bottom:0;width:1px;background:#4a5445}
+.fci{position:absolute;top:50%;height:3px;border-radius:2px;translate:0 -50%;background:#7f8678}
+.fdot{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;translate:-50% -50%;background:var(--ink);box-shadow:0 0 0 2px var(--card)}
+.frow.me .fdot{background:var(--orange)}.frow.me .fci{background:#b0603f}
+.fval{grid-column:2;font:500 12px/1.3 var(--heading);color:var(--muted);font-variant-numeric:tabular-nums}
+.faxis{position:relative;height:18px;margin-top:4px;font:500 10.5px/1 var(--heading);color:#8d9486;font-variant-numeric:tabular-nums}
+.faxis span{position:absolute;translate:-50% 0}
+.faxis.pad{margin-left:calc(min(190px,max(120px,30%)) + 14px)}
+/* signal vs luck */
+.bars{display:grid;gap:14px;margin-top:8px}
+.bar .lab{display:flex;justify-content:space-between;font:500 13px var(--heading);margin-bottom:6px}
+.bar .lab span:last-child{font-variant-numeric:tabular-nums}
+.bar .t{height:16px;border-radius:4px;background:#1a2117;overflow:hidden}
+.bar .t i{display:block;height:100%;width:var(--w);border-radius:0 4px 4px 0;background:var(--c);transform-origin:left;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.js-reveal .rv:not(.in) .bar .t i{transform:scaleX(0)}
+/* tables */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.toolbar .chips{margin:0}
+.search{flex:1;min-width:200px;max-width:320px;background:#10120f;border:1px solid var(--border);border-radius:999px;color:var(--ink);font:500 14px var(--heading);padding:10px 16px}
+.search::placeholder{color:#8a917f}
+.tablewrap{max-height:520px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 16px;border-bottom:1px solid #232a20;white-space:nowrap}
+th{position:sticky;top:0;background:#10140e;font:500 10.5px/1.2 var(--heading);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);z-index:1}
+td.num,th.num{text-align:right}
+td.rank{color:#8d9486;width:1%}
+td .rb{display:inline-block;vertical-align:middle;height:8px;border-radius:2px;background:var(--blue);margin-right:10px}
+tbody tr:hover{background:#171d14}
+.empty{padding:22px 16px;color:var(--muted)}
+/* notes */
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.list{list-style:none;display:grid;gap:10px;margin-top:12px}
+.list li{position:relative;padding-left:18px;font-size:13.5px;line-height:1.65;color:#c9cfc0}
+.list li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--orange)}
+.list li b{color:var(--ink);font-weight:600}
+dl.terms{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;margin-top:12px;font-size:13.5px}
+dl.terms dt{font:600 12.5px/1.6 var(--heading);white-space:nowrap}
+dl.terms dd{color:#c9cfc0;line-height:1.6}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.btn{display:inline-flex;align-items:center;gap:14px;padding:13px 20px;border-radius:999px;font:600 13px/1 var(--heading);border:1px solid var(--border);transition:background .2s,border-color .2s}
+.btn:hover{border-color:#6b4a3a}
+.btn.primary{background:var(--orange);color:#171b13;border-color:var(--orange)}.btn.primary:hover{background:#ff9b76}
+footer{margin:64px 0 60px;padding-top:20px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 30px;font-size:12.5px;color:var(--muted)}
+footer a{text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--orange)}
+.err{padding:18px 20px;border:1px solid #6b3a2a;border-radius:12px;background:#1d1411;color:#f0c1ad;margin:26px 0}
+[hidden]{display:none!important}
+.js-reveal .rv:not(.in){opacity:0}
+.js-reveal .rv.in{animation:rv-in .75s cubic-bezier(.2,.7,.2,1) backwards}
+@keyframes rv-in{from{opacity:0;translate:0 24px}}
+@media(max-width:980px){.hero{grid-template-columns:1fr;gap:22px;padding-top:40px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2,.cols{grid-template-columns:1fr}.sec-head{display:block}.sec-head p{margin-top:14px}.timeline{grid-template-columns:repeat(2,minmax(0,1fr))}.verdict{grid-template-columns:1fr;gap:8px}}
+@media(max-width:560px){.wrap{width:calc(100% - 32px)}header.top{height:76px}.top nav a.hide-s{display:none}.kpis{grid-template-columns:1fr}.kpi{min-height:0}.panel{padding:18px 14px 16px}.chart-box{height:330px}.frow{grid-template-columns:1fr}.fval{grid-column:1}.faxis.pad{margin-left:0}.timeline{grid-template-columns:1fr}th,td{padding:9px 10px}dl.terms{grid-template-columns:1fr;gap:2px 0}dl.terms dd{margin-bottom:8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="https://takizawadaiki.github.io/" aria-label="Daiki Takizawa home"><i>dt</i>Daiki Takizawa<b>.</b></a>
+    <nav aria-label="Page">
+      <a class="hide-s" href="#test">The test</a>
+      <a class="hide-s" href="#leaderboard">Leaderboard</a>
+      <a class="hide-s" href="https://github.com/takizawadaiki/pitch-quality-model">Code ↗</a>
+      <a href="https://takizawadaiki.github.io/#projects">← All projects</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Baseball research · Statcast 2021–2026</div>
+        <h1>Does pitch shape <em>predict next season?</em></h1>
+      </div>
+      <p class="lede">A pitcher’s results over one season are noisy. This project rates every pitch using only how it leaves the hand, with no results and no location, then asks whether that rating says something about the following season that the results do not.</p>
+    </div>
+
+    <noscript><div class="err">This page draws its numbers and charts with JavaScript. The same results are in <a href="results/summary.md" style="text-decoration:underline">results/summary.md</a>.</div></noscript>
+    <div id="error" class="err" hidden></div>
+
+    <div class="verdict rv">
+      <span class="k">Result on unseen seasons</span>
+      <p id="verdict">Loading the results…</p>
+      <a href="#adds">See the test ↓</a>
+    </div>
+
+    <div class="kpis" id="kpis" aria-label="Headline numbers"></div>
+
+    <section id="test">
+      <div class="sec-top"><span class="k"><b>01 /</b>The design</span><span class="k">Fixed before any real data was run</span></div>
+      <div class="sec-head"><h2>Learn from the past. <em>Judge on the future.</em></h2><p>The model never sees the seasons it is judged on. It learns what pitch shapes were worth, rates a later season, and those ratings are compared with what the same pitchers did the year after.</p></div>
+      <div class="timeline rv">
+        <div class="tl"><span class="k">Learn</span><div class="yrs" id="tl-train">2021–2023</div><p>The model learns what each combination of velocity, movement, spin and release was worth in runs.</p></div>
+        <div class="tl"><span class="k">Stop</span><div class="yrs" id="tl-tune">2024</div><p>Decides when training stops. Nothing else.</p></div>
+        <div class="tl"><span class="k">Rate</span><div class="yrs" id="tl-score">2025</div><p>Every pitch is rated from its shape alone.</p></div>
+        <div class="tl judge"><span class="k">Judge</span><div class="yrs" id="tl-target">2026</div><p>Ratings are compared with what happened next.</p></div>
+      </div>
+    </section>
+
+    <section id="tracks">
+      <div class="sec-top"><span class="k"><b>02 /</b>Link with next season</span><span class="k" id="pair-count"></span></div>
+      <div class="sec-head"><h2>Does the rating <em>track what happens next?</em></h2><p>Each point is one pitcher. Pick what to predict. The second chart puts the rating beside the numbers a club already has from the same season.</p></div>
+      <div class="chips" id="target-chips" role="group" aria-label="Next-season result"></div>
+      <div class="grid2">
+        <div class="panel rv">
+          <h3 id="scatter-title">Rating against next season</h3>
+          <p class="sub" id="scatter-sub"></p>
+          <div class="chart-box"><canvas id="scatter" role="img" aria-label="Scatter chart of each pitcher's rating against his result the following season. The pitchers are listed in the leaderboard table below."></canvas></div>
+          <p class="src">Source: results/pitcher_seasons.csv · names from results/leaderboard.csv</p>
+        </div>
+        <div class="panel rv">
+          <h3>Which number says most about next season?</h3>
+          <p class="sub">Strength of the link (|r|) with the chosen result, with a 95% interval from resampling pitchers. Further right is stronger.</p>
+          <div class="forest" id="predictors"></div>
+          <div class="faxis pad" id="predictors-axis" aria-hidden="true"></div>
+          <p class="src">Source: results/metrics.json › final.correlations</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="adds">
+      <div class="sec-top"><span class="k"><b>03 /</b>The test that counts</span><span class="k">Out-of-sample error</span></div>
+      <div class="sec-head"><h2>Does it add anything <em>a club doesn’t already know?</em></h2><p>Predict next season from this season’s results alone, then again with the rating added, on pitchers the prediction never saw. Left of the line means the rating reduced the error. An interval that crosses the line is consistent with no gain.</p></div>
+      <div class="chips" id="pair-chips" role="group" aria-label="Season pair"></div>
+      <div class="panel rv">
+        <h3 id="adds-title">Change in prediction error when the rating is added</h3>
+        <p class="sub" id="adds-sub"></p>
+        <div class="forest" id="adds-plot"></div>
+        <div class="faxis pad" id="adds-axis" aria-hidden="true"></div>
+        <p class="src">Source: results/metrics.json › incremental · error is cross-validated RMSE; intervals resample pitchers</p>
+      </div>
+    </section>
+
+    <section id="signal">
+      <div class="sec-top"><span class="k"><b>04 /</b>Signal or luck</span><span class="k">Within one season</span></div>
+      <div class="grid2">
+        <div><h2>How much of the rating <em>is the pitcher?</em></h2><p class="lede" style="margin-top:16px" id="signal-text"></p></div>
+        <div class="panel rv">
+          <h3>Agreement between two halves of a season</h3>
+          <p class="sub">Each pitcher’s games are split into alternating halves. A measure of skill gives nearly the same answer in both. Projected to a full season.</p>
+          <div class="bars" id="signal-bars"></div>
+          <p class="src">Source: results/metrics.json › reliability</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="leaderboard">
+      <div class="sec-top"><span class="k"><b>05 /</b>Leaderboard</span><span class="k" id="board-count"></span></div>
+      <div class="sec-head"><h2>Who has <em>the best stuff?</em></h2><p>100 is average and every 10 points is one standard deviation, fixed on the training seasons. The rating reflects velocity, movement and release only. It does not know where the pitch went.</p></div>
+      <div class="toolbar">
+        <div class="chips" id="board-chips" role="group" aria-label="Table"><button type="button" data-view="pitchers" aria-pressed="true">Pitchers</button><button type="button" data-view="pitches" aria-pressed="false">Single pitches</button></div>
+        <input class="search" id="board-search" type="search" placeholder="Search a pitcher" aria-label="Search a pitcher"/>
+      </div>
+      <div class="tablewrap rv"><table id="board"><thead></thead><tbody></tbody></table></div>
+      <p class="src" style="margin-top:10px" id="board-src"></p>
+    </section>
+
+    <section id="method">
+      <div class="sec-top"><span class="k"><b>06 /</b>Reading it honestly</span><span class="k">Guards and limits</span></div>
+      <div class="cols">
+        <div class="panel rv">
+          <h3>How the code guards against fooling itself</h3>
+          <ul class="list">
+            <li><b>No training on the future.</b> Seasons are ordered in one file, training checks it, and a test checks the model report.</li>
+            <li><b>No results in the inputs.</b> A test scrambles every outcome column and requires the model inputs to stay identical.</li>
+            <li><b>Handedness.</b> A test builds a mirror-image left- and right-hander and requires identical inputs.</li>
+            <li><b>Sign of run value.</b> The run stops unless strikeouts lower run expectancy and home runs raise it.</li>
+            <li><b>Noise.</b> Every headline number carries a 95% interval from resampling pitchers.</li>
+          </ul>
+        </div>
+        <div class="panel rv">
+          <h3>Limits</h3>
+          <ul class="list">
+            <li><b>Stuff, not command.</b> The model does not see location.</li>
+            <li><b>Count.</b> The run value of a pitch depends on the count, which the model is not told.</li>
+            <li><b>Selection.</b> Pitchers who throw 500 pitches in consecutive seasons are a healthier, better group.</li>
+            <li id="overfit"><b>Fitting noise.</b></li>
+            <li><b>Benchmark.</b> ERA and FIP need earned runs and innings, which pitch data lacks. The comparison uses strikeout-minus-walk rate, FIP’s components per batter and expected wOBA.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel rv" style="margin-top:18px">
+        <h3>Terms</h3>
+        <dl class="terms">
+          <dt>Rating</dt><dd>The model’s expected runs prevented per 100 pitches from pitch shape, rescaled so 100 is average.</dd>
+          <dt>Expected wOBA allowed</dt><dd>How much damage hitters should have done given how hard and at what angle they hit the ball. Lower is better for the pitcher.</dd>
+          <dt>Strikeout-minus-walk rate</dt><dd>Strikeouts minus unintentional walks, per batter faced. Higher is better.</dd>
+          <dt>Runs prevented per 100 pitches</dt><dd>The actual change in run expectancy on a pitcher’s pitches, from his side. Higher is better.</dd>
+        </dl>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/takizawadaiki/pitch-quality-model">View the code <span aria-hidden="true">↗</span></a>
+          <a class="btn" href="https://github.com/takizawadaiki/pitch-quality-model/blob/main/RESEARCH_PLAN.md">Research plan, written first <span aria-hidden="true">↗</span></a>
+          <a class="btn" href="results/metrics.json">Every number (JSON)</a>
+          <a class="btn" href="results/leaderboard.csv">Leaderboard (CSV)</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Independent research by Daiki Takizawa. No affiliation with MLB or any club.</span>
+    <span id="foot-data">Pitch data: <a href="https://baseballsavant.mlb.com/">Baseball Savant</a> via <a href="https://github.com/jldbc/pybaseball">pybaseball</a>.</span>
+  </footer>
+</div>
+
+<script src="chart.umd.min.js"></script>
+<script>
+(async () => {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const sign = (v, d) => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(d);
+  const num = (v, d) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(d);
+  const int = v => Math.round(v).toLocaleString('en-US');
+
+  // Minimal CSV reader (handles quoted fields).
+  function csv(text) {
+    const rows = []; let row = [], cur = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c !== '\r') cur += c;
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    const head = rows.shift();
+    return rows.filter(r => r.length === head.length).map(r => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+  }
+
+  let M, R, D, board, pitches, seasons;
+  try {
+    const get = async (path, json) => { const r = await fetch(path); if (!r.ok) throw new Error(path + ' (HTTP ' + r.status + ')'); return json ? r.json() : r.text(); };
+    [M, R, D, board, pitches, seasons] = await Promise.all([
+      get('results/metrics.json', true), get('results/model_report.json', true), get('results/data_manifest.json', true),
+      get('results/leaderboard.csv').then(csv), get('results/pitch_types.csv').then(csv), get('results/pitcher_seasons.csv').then(csv),
+    ]);
+  } catch (e) {
+    $('error').hidden = false;
+    $('error').textContent = 'The results could not be loaded: ' + e.message + '. If you opened this file directly, serve the folder instead (python3 -m http.server).';
+    $('verdict').textContent = 'Results unavailable.';
+    return;
+  }
+
+  const C = M.config, F = M.final, DEV = M.development;
+  const TARGETS = {
+    xwoba: { label: 'Expected wOBA allowed', short: 'expected wOBA allowed', better: 'lower', fmt: v => v.toFixed(3), d: 4 },
+    k_bb: { label: 'Strikeout-minus-walk rate', short: 'strikeout-minus-walk rate', better: 'higher', fmt: v => (v * 100).toFixed(1) + '%', d: 4 },
+    rv100: { label: 'Runs prevented per 100 pitches', short: 'runs prevented per 100 pitches', better: 'higher', fmt: v => num(v, 2), d: 3 },
+  };
+  const PRED = {
+    stuff: 'Pitch quality rating (this model)', k_bb: 'Strikeout-minus-walk rate', fip_core: 'FIP components per batter',
+    woba: 'wOBA allowed', xwoba: 'Expected wOBA allowed', rv100: 'Runs prevented per 100 pitches',
+  };
+  const span = a => a.length > 1 ? a[0] + '–' + a[a.length - 1] : String(a[0]);
+  $('tl-train').textContent = span(C.train_seasons); $('tl-tune').textContent = C.tune_season;
+  $('tl-score').textContent = C.score_season; $('tl-target').textContent = C.target_season;
+
+  // ---- verdict and headline tiles: every value comes from the results files
+  const drop = t => -F.incremental[t].delta_rmse / F.incremental[t].rmse_results_only * 100;
+  const clear = Object.keys(TARGETS).filter(t => F.incremental[t].delta_rmse_ci[1] < 0);
+  const totalPitches = Object.values(R.pitch_level).reduce((s, v) => s + v.pitches, 0);
+  $('verdict').innerHTML = clear.length
+    ? '<strong>A modest gain.</strong> Added to a pitcher’s own ' + C.score_season + ' results, the rating cut the error in predicting ' + C.target_season + ' ' +
+      clear.map(t => TARGETS[t].short + ' by ' + drop(t).toFixed(1) + '%').join(' and ') + '. The intervals only just exclude zero, so this is modest evidence, not a strong result.'
+    : '<strong>No clear gain.</strong> Added to a pitcher’s own ' + C.score_season + ' results, the rating did not reduce the error in predicting ' + C.target_season + ' by more than chance would.';
+  const rel = M.reliability, cx = F.correlations.xwoba.stuff;
+  const tiles = [
+    { l: 'Pitches analysed', v: totalPitches / 1e6, d: 2, suf: 'M', n: 'Regular-season pitches, ' + span([C.train_seasons[0], C.target_season]) + ', after cleaning', s: 'results/model_report.json' },
+    { l: 'Pitchers in the test', v: F.pitchers, d: 0, n: 'At least ' + C.min_pitches + ' pitches in both ' + C.score_season + ' and ' + C.target_season, s: 'metrics.json › final.pitchers' },
+    { l: 'Link with next season', v: cx.r, d: 2, pre: 'r = ', n: C.score_season + ' rating against ' + C.target_season + ' expected wOBA allowed. 95% interval ' + num(cx.lo, 2) + ' to ' + num(cx.hi, 2), s: 'metrics.json › final.correlations' },
+    { l: 'Signal in the rating', v: rel.stuff.full_season, d: 2, n: 'Split-half agreement over a full season. Actual runs prevented: ' + rel.rv100.full_season.toFixed(2), s: 'metrics.json › reliability' },
+  ];
+  tiles.forEach(t => {
+    const tile = el('div', 'kpi rv'), v = el('div', 'v');
+    v.dataset.v = t.v; v.dataset.d = t.d; v.dataset.pre = t.pre || ''; v.dataset.suf = t.suf || '';
+    v.textContent = (t.pre || '') + (t.d ? num(t.v, t.d) : int(t.v)) + (t.suf || '');
+    tile.append(el('span', 'k', esc(t.l)), v, el('div', 'n', esc(t.n)), el('div', 'src', esc(t.s)));
+    $('kpis').append(tile);
+  });
+
+  // ---- pitcher pairs for the scatter, rebuilt from the season table and checked against the metrics file
+  const names = Object.fromEntries(board.map(b => [b.pitcher, b.name]));
+  const bySeason = y => Object.fromEntries(seasons.filter(s => Number(s.game_year) === y && Number(s.n_pitches) >= C.min_pitches).map(s => [s.pitcher, s]));
+  const now = bySeason(C.score_season), next = bySeason(C.target_season);
+  const need = ['stuff', 'k_bb', 'fip_core', 'woba', 'xwoba', 'rv100'];
+  const pairs = Object.keys(now).filter(id => next[id] && need.every(k => now[id][k] !== '') && ['k_bb', 'xwoba', 'rv100'].every(k => next[id][k] !== ''))
+    .map(id => ({ id, name: names[id] || 'Pitcher ' + id, rating: Number(now[id].stuff_plus), k_bb: Number(next[id].k_bb), xwoba: Number(next[id].xwoba), rv100: Number(next[id].rv100) }));
+  $('pair-count').textContent = pairs.length + ' pitchers' + (pairs.length === F.pitchers ? '' : ' (metrics file says ' + F.pitchers + ')');
+
+  Chart.defaults.color = '#a5ab9e';
+  Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+  let target = 'xwoba', chart;
+  function drawScatter() {
+    const T = TARGETS[target], c = F.correlations[target].stuff;
+    const pts = pairs.map(p => ({ x: p.rating, y: p[target], name: p.name }));
+    const n = pts.length, mx = pts.reduce((s, p) => s + p.x, 0) / n, my = pts.reduce((s, p) => s + p.y, 0) / n;
+    const slope = pts.reduce((s, p) => s + (p.x - mx) * (p.y - my), 0) / pts.reduce((s, p) => s + (p.x - mx) ** 2, 0);
+    const x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x));
+    $('scatter-title').textContent = C.score_season + ' rating against ' + C.target_season + ' ' + T.short;
+    $('scatter-sub').innerHTML = 'r = ' + num(c.r, 2) + ' (95% interval ' + num(c.lo, 2) + ' to ' + num(c.hi, 2) + '). ' +
+      (T.better === 'lower' ? 'Lower is better for the pitcher, so a useful rating slopes down.' : 'Higher is better for the pitcher, so a useful rating slopes up.') + ' The dashed line is the least-squares fit.';
+    const data = { datasets: [
+      { label: 'Pitchers', data: pts, backgroundColor: 'rgba(57,135,229,.78)', borderColor: '#151a13', borderWidth: 1.5, pointRadius: 4.5, pointHoverRadius: 8, pointHitRadius: 10 },
+      { type: 'line', label: 'Fit', data: [{ x: x0, y: my + slope * (x0 - mx) }, { x: x1, y: my + slope * (x1 - mx) }], borderColor: '#f0f0e7', borderDash: [6, 5], borderWidth: 1.6, pointRadius: 0, pointHitRadius: 0 },
+    ] };
+    if (chart) { chart.data = data; chart.options.scales.y.title.text = C.target_season + ' ' + T.short; chart.options.scales.y.ticks.callback = v => T.fmt(v); chart.update(reduced ? 'none' : undefined); return; }
+    chart = new Chart($('scatter'), {
+      type: 'scatter', data,
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: reduced ? false : { duration: 700 },
+        interaction: { mode: 'nearest', intersect: true },
+        plugins: { legend: { display: false }, tooltip: {
+          filter: i => i.dataset.label !== 'Fit', backgroundColor: '#0c0f0a', borderColor: '#4a5445', borderWidth: 1, padding: 12, displayColors: false, titleColor: '#f0f0e7', bodyColor: '#c9cfc0',
+          callbacks: { title: i => i[0].raw.name, label: i => [C.score_season + ' rating: ' + i.raw.x.toFixed(0), C.target_season + ' ' + TARGETS[target].short + ': ' + TARGETS[target].fmt(i.raw.y)] } } },
+        scales: {
+          x: { title: { display: true, text: C.score_season + ' pitch quality rating (100 = average)' }, grid: { color: '#242b21' }, border: { color: '#3a4435' } },
+          y: { title: { display: true, text: C.target_season + ' ' + T.short }, ticks: { callback: v => T.fmt(v) }, grid: { color: '#242b21' }, border: { color: '#3a4435' } },
+        },
+      },
+    });
+  }
+
+  // ---- interval plots (HTML, so they stay readable on phones)
+  function axis(node, lo, hi, ticks, fmt) {
+    node.textContent = '';
+    ticks.forEach(v => { const t = el('span', '', fmt(v)); t.style.left = (v - lo) / (hi - lo) * 100 + '%'; node.append(t); });
+  }
+  function drawPredictors() {
+    const root = $('predictors'); root.textContent = '';
+    const rows = Object.keys(PRED).map(p => ({ p, c: F.correlations[target][p] })).sort((a, b) => Math.abs(b.c.r) - Math.abs(a.c.r));
+    rows.forEach(({ p, c }) => {
+      const crosses = c.lo * c.hi <= 0, a = Math.abs(c.lo), b = Math.abs(c.hi);
+      const lo = crosses ? 0 : Math.min(a, b), hi = Math.max(a, b);
+      const row = el('div', 'frow' + (p === 'stuff' ? ' me' : '')), track = el('div', 'ftrack');
+      const ci = el('div', 'fci'); ci.style.left = lo * 100 + '%'; ci.style.width = (hi - lo) * 100 + '%';
+      const dot = el('div', 'fdot'); dot.style.left = Math.abs(c.r) * 100 + '%';
+      track.append(ci, dot);
+      row.title = PRED[p] + ': r = ' + num(c.r, 2) + ', 95% interval ' + num(c.lo, 2) + ' to ' + num(c.hi, 2);
+      row.append(el('div', 'fname', esc(PRED[p])), track, el('div', 'fval', '|r| = ' + Math.abs(c.r).toFixed(2) + ' (' + lo.toFixed(2) + ' to ' + hi.toFixed(2) + ')'));
+      root.append(row);
+    });
+    axis($('predictors-axis'), 0, 1, [0, .25, .5, .75, 1], v => v.toFixed(2).replace(/0$/, '').replace(/\.$/, ''));
+  }
+  let pairName = 'final';
+  function drawAdds() {
+    const P = M[pairName], root = $('adds-plot'); root.textContent = '';
+    const rows = Object.keys(TARGETS).map(t => { const v = P.incremental[t], base = v.rmse_results_only;
+      return { t, v, pct: v.delta_rmse / base * 100, lo: v.delta_rmse_ci[0] / base * 100, hi: v.delta_rmse_ci[1] / base * 100 }; });
+    const bound = Math.max(2, Math.ceil(Math.max(...rows.flatMap(r => [Math.abs(r.lo), Math.abs(r.hi)])) + .5));
+    const pos = v => (v + bound) / (2 * bound) * 100;
+    rows.forEach(r => {
+      const helps = r.hi < 0, row = el('div', 'frow' + (helps ? ' me' : '')), track = el('div', 'ftrack');
+      const zero = el('div', 'zero'); zero.style.left = '50%';
+      const ci = el('div', 'fci'); ci.style.left = pos(r.lo) + '%'; ci.style.width = (pos(r.hi) - pos(r.lo)) + '%';
+      const dot = el('div', 'fdot'); dot.style.left = pos(r.pct) + '%';
+      track.append(zero, ci, dot);
+      row.append(el('div', 'fname', esc(TARGETS[r.t].label)), track,
+        el('div', 'fval', sign(r.pct, 1) + '% (' + sign(r.lo, 1) + '% to ' + sign(r.hi, 1) + '%) · error ' + r.v.rmse_results_only.toFixed(TARGETS[r.t].d) + ' → ' + r.v.rmse_with_rating.toFixed(TARGETS[r.t].d) +
+          (helps ? ' · interval excludes zero' : ' · interval includes zero')));
+      root.append(row);
+    });
+    axis($('adds-axis'), -bound, bound, [-bound, -bound / 2, 0, bound / 2, bound], v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + '%');
+    $('adds-title').textContent = 'Change in prediction error when the rating is added: ' + P.this_season + ' → ' + P.next_season;
+    $('adds-sub').textContent = P.pitchers + ' pitchers. Results-only prediction uses strikeout-minus-walk rate, FIP components and expected wOBA from ' + P.this_season + '. ' +
+      (pairName === 'development' ? P.this_season + ' also decided when training stopped, so this pair is slightly optimistic. It is shown as a check on the final pair.' : 'This is the pair the model was never tuned on.');
+    document.querySelectorAll('#pair-chips button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pair === pairName)));
+  }
+
+  Object.keys(TARGETS).forEach(t => { const b = el('button', '', esc(TARGETS[t].label)); b.type = 'button'; b.dataset.t = t; b.setAttribute('aria-pressed', String(t === target)); $('target-chips').append(b); });
+  $('target-chips').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (!b) return; target = b.dataset.t;
+    document.querySelectorAll('#target-chips button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); drawScatter(); drawPredictors(); });
+  [['final', F], ['development', DEV]].forEach(([k, P]) => { const b = el('button', '', (k === 'final' ? 'Final test: ' : 'Development check: ') + P.this_season + ' → ' + P.next_season); b.type = 'button'; b.dataset.pair = k; $('pair-chips').append(b); });
+  $('pair-chips').addEventListener('click', e => { const b = e.target.closest('button[data-pair]'); if (!b) return; pairName = b.dataset.pair; drawAdds(); });
+  drawScatter(); drawPredictors(); drawAdds();
+
+  // ---- signal or luck
+  [['Pitch quality rating', rel.stuff.full_season, '#ff8050'], ['Actual runs prevented per 100 pitches', rel.rv100.full_season, '#7f8678']].forEach(([label, v, c]) => {
+    const bar = el('div', 'bar', '<div class="lab"><span>' + esc(label) + '</span><span>' + v.toFixed(2) + '</span></div><div class="t"><i style="--w:' + Math.max(0, Math.min(1, v)) * 100 + '%;--c:' + c + '"></i></div>');
+    $('signal-bars').append(bar);
+  });
+  $('signal-text').textContent = 'Almost all of it. Across ' + rel.pitchers + ' pitchers in ' + rel.season + ', the rating from one half of a pitcher’s games nearly matches the other half (' + rel.stuff.full_season.toFixed(2) +
+    ' projected to a full season), while actual runs prevented barely agree with themselves (' + rel.rv100.full_season.toFixed(2) + '). From ' + C.score_season + ' to ' + C.target_season +
+    ' the rating correlates with itself at ' + F.correlations.stuff_to_stuff.r.toFixed(2) + '. A stable number is not automatically a useful one, which is why the test above matters.';
+
+  // ---- limits: fitting noise, from the model report
+  const r2 = role => Object.values(R.pitch_level).filter(v => v.role === role).map(v => v.r2 * 100);
+  const tr = r2('train'), un = r2('unseen');
+  $('overfit').innerHTML = '<b>Fitting noise.</b> On single pitches the model explains ' + (tr.reduce((a, b) => a + b, 0) / tr.length).toFixed(2) + '% of run-value variance in its training seasons and ' +
+    Math.min(...un).toFixed(2) + '% to ' + Math.max(...un).toFixed(2) + '% in later ones. Single pitches are mostly luck, but the gap says stronger regularisation is the first thing to try.';
+
+  // ---- leaderboard
+  const TYPES = { FF: 'Four-seam fastball', SI: 'Sinker', FC: 'Cutter', SL: 'Slider', ST: 'Sweeper', SV: 'Slurve', CU: 'Curveball', KC: 'Knuckle curve', CH: 'Changeup', FS: 'Splitter' };
+  const ranked = board.map((b, i) => ({ rank: i + 1, name: b.name, n: Number(b.n_pitches), rating: Number(b.stuff_plus), k_bb: Number(b.k_bb), xwoba: Number(b.xwoba) }));
+  const single = pitches.map((p, i) => ({ rank: i + 1, name: /^\d+$/.test(p.name) ? 'Pitcher ' + p.name : p.name, type: TYPES[p.pitch_type] || p.pitch_type, n: Number(p.n), velo: Number(p.velo), hmov: Number(p.hmov), vmov: Number(p.vmov), stuff: Number(p.stuff) }));
+  const maxR = Math.max(...ranked.map(r => r.rating)), minR = Math.min(...ranked.map(r => r.rating));
+  let view = 'pitchers';
+  function drawBoard() {
+    const q = $('board-search').value.trim().toLowerCase(), head = document.querySelector('#board thead'), body = document.querySelector('#board tbody');
+    const rows = (view === 'pitchers' ? ranked : single).filter(r => !q || r.name.toLowerCase().includes(q) || (r.type || '').toLowerCase().includes(q));
+    const shown = q ? rows.slice(0, 100) : rows.slice(0, 40);
+    if (view === 'pitchers') {
+      head.innerHTML = '<tr><th>#</th><th>Pitcher</th><th class="num">Rating</th><th class="num">Pitches</th><th class="num">K−BB rate</th><th class="num">xwOBA allowed</th></tr>';
+      body.innerHTML = shown.map(r => '<tr><td class="rank">' + r.rank + '</td><td>' + esc(r.name) + '</td><td class="num"><span class="rb" style="width:' + (6 + (r.rating - minR) / (maxR - minR) * 54).toFixed(0) + 'px"></span>' + r.rating.toFixed(0) +
+        '</td><td class="num">' + int(r.n) + '</td><td class="num">' + (r.k_bb * 100).toFixed(1) + '%</td><td class="num">' + r.xwoba.toFixed(3) + '</td></tr>').join('');
+    } else {
+      head.innerHTML = '<tr><th>#</th><th>Pitcher</th><th>Pitch</th><th class="num">Runs / 100</th><th class="num">Thrown</th><th class="num">Velocity</th><th class="num">Arm-side move</th><th class="num">Vertical move</th></tr>';
+      body.innerHTML = shown.map(r => '<tr><td class="rank">' + r.rank + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.type) + '</td><td class="num">' + sign(r.stuff, 2) + '</td><td class="num">' + int(r.n) +
+        '</td><td class="num">' + r.velo.toFixed(1) + ' mph</td><td class="num">' + sign(r.hmov, 1) + ' in</td><td class="num">' + sign(r.vmov, 1) + ' in</td></tr>').join('');
+    }
+    if (!shown.length) body.innerHTML = '<tr><td class="empty" colspan="8">No pitcher matches that search.</td></tr>';
+    $('board-count').textContent = view === 'pitchers' ? ranked.length + ' pitchers, ' + C.score_season : single.length + ' pitches thrown 100+ times, ' + C.score_season;
+    $('board-src').textContent = (view === 'pitchers' ? 'Source: results/leaderboard.csv' : 'Source: results/pitch_types.csv · runs prevented per 100 pitches expected from shape') +
+      ' · showing ' + shown.length + ' of ' + rows.length + (q ? ' matches' : '. Search to find anyone.');
+    $('board-search').placeholder = view === 'pitchers' ? 'Search a pitcher' : 'Search a pitcher or pitch type';
+  }
+  $('board-chips').addEventListener('click', e => { const b = e.target.closest('button[data-view]'); if (!b) return; view = b.dataset.view;
+    document.querySelectorAll('#board-chips button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); drawBoard(); });
+  $('board-search').addEventListener('input', drawBoard);
+  drawBoard();
+
+  $('foot-data').innerHTML += ' Retrieved ' + new Date(D.retrieved_at_utc).toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) + '.';
+
+  // ---- motion: progress bar, tile glow, reveals, count-up
+  const bar = document.querySelector('.progress'); let queued = false;
+  const upd = () => { queued = false; const m = document.documentElement.scrollHeight - innerHeight; bar.style.setProperty('--p', m > 0 ? Math.min(scrollY / m, 1).toFixed(4) : 0); };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(upd); } }, { passive: true });
+  addEventListener('resize', upd); upd();
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) document.querySelectorAll('.kpi').forEach(t => t.addEventListener('pointermove', e => {
+    const r = t.getBoundingClientRect(); t.style.setProperty('--mx', (e.clientX - r.left) + 'px'); t.style.setProperty('--my', (e.clientY - r.top) + 'px'); }));
+  if (!reduced && 'IntersectionObserver' in window) {
+    document.documentElement.classList.add('js-reveal');
+    const count = node => { const end = Number(node.dataset.v), d = Number(node.dataset.d), t0 = performance.now();
+      (function step(now) { const t = Math.min((now - t0) / 1100, 1), e = 1 - Math.pow(1 - t, 3), v = end * e;
+        node.textContent = node.dataset.pre + (d ? num(v, d) : int(v)) + node.dataset.suf;
+        if (t < 1) requestAnimationFrame(step); else node.textContent = node.dataset.pre + (d ? num(end, d) : int(end)) + node.dataset.suf; })(t0); };
+    const io = new IntersectionObserver(es => es.forEach(en => { if (!en.isIntersecting) return; en.target.classList.add('in'); en.target.querySelectorAll('.v[data-v]').forEach(count); io.unobserve(en.target); }), { threshold: .1, rootMargin: '0px 0px -5% 0px' });
+    document.querySelectorAll('.rv').forEach(n => io.observe(n));
+  }
+})();
+</script>
+</body>
+</html>
