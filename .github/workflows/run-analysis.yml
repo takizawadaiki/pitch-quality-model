@@ -1,0 +1,33 @@
+name: Run analysis
+# Started by hand: Actions tab -> Run analysis -> Run workflow.
+# Downloads Statcast, trains, evaluates, and commits the results/ folder back to the repository.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      # Months already downloaded are reused on later runs.
+      - uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: statcast-raw-${{ github.run_id }}
+          restore-keys: statcast-raw-
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: python run.py all --refresh
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results
+          git diff --cached --quiet && echo "No change in results." || git commit -m "Update results from Statcast run"
+          git push

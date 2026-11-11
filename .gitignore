@@ -1,0 +1,9 @@
+# Raw and prepared pitch data are large and can be re-downloaded: python run.py download
+data/
+# Output from made-up test data must never be mistaken for findings
+results_synthetic/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+*.tmp
+.venv/
